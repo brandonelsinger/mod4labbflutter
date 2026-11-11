@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'bmi_tab.dart';
 import 'morse_tab.dart';
 import 'alcohol_tab.dart';
+import 'quiz_tab.dart';
 
 void main() {
   runApp(const HelloWorldApp());
@@ -36,19 +37,21 @@ class _HomePageState extends State<HomePage> {
     'BMI Calculator',
     'Morse Code Translator',
     'When Can I Buy Alcohol',
+    'Quiz',
   ];
 
   static const List<Widget> _pages = [
     BmiTab(),
     MorseTab(),
     AlcoholTab(),
+    QuizTab(),
   ];
 
    @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(_titles[_selectedIndex])),
-      body: _pages[_selectedIndex],
+      body: IndexedStack(index: _selectedIndex, children: _pages),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) {
@@ -58,6 +61,7 @@ class _HomePageState extends State<HomePage> {
           NavigationDestination(icon: Icon(Icons.monitor_weight), label: 'BMI'),
           NavigationDestination(icon: Icon(Icons.more_horiz), label: 'Morse'),
           NavigationDestination(icon: Icon(Icons.local_bar), label: 'Alcohol'),
+          NavigationDestination(icon: Icon(Icons.quiz), label: 'Quiz'),
         ],
       ),
     );
