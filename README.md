@@ -15,6 +15,8 @@ A small Flutter app that displays a “Hello, world!” screen.
 
    Install any tools reported as missing by `flutter doctor`. To run the Windows desktop version, install Visual Studio with the **Desktop development with C++** workload.
 
+> **Round 3 note:** Running in Chrome does **not** require Android Studio or Visual Studio. If `flutter doctor` shows ❌ for "Android toolchain" or ⚠️ for "Visual Studio", you can ignore them as long as **Chrome** has a ✅.
+
 ## Set up and run this project
 
 Open a terminal in the project folder and run:
@@ -30,6 +32,8 @@ Choose Windows or Edge from the devices shown by `flutter devices`:
 flutter run -d windows
 flutter run -d edge
 ```
+
+> **Round 3 note:** We recommend **`flutter run -d chrome`**. `-d windows` only works if Visual Studio's C++ components are installed. While the app is running, press `r` for hot reload or `R` for hot restart (needed after changing `const` lists).
 
 Run the widget tests with:
 
@@ -65,3 +69,41 @@ test/
 ### Notes
 - This project has no `android/` or `ios/` folder. To run it on a phone, run `flutter create --platforms=android .` first.
 - If `flutter` isn't recognized after installing, make sure `C:\src\flutter\bin` is in your PATH, then restart your terminal or VS Code.
+
+---
+
+## Round 3 – Review and Quiz Tab
+
+
+**Cleanup:**
+- Removed `lib/ReadMe.mb`, a stray file containing only the text "How to install flutter".
+- Added notes above about using Chrome and ignoring the Android and Visual Studio warnings in `flutter doctor`.
+- Changed the tab body in `main.dart` from `_pages[_selectedIndex]` to an `IndexedStack`, so each tab **keeps its data** when you switch away and come back. Before, switching tabs cleared the BMI inputs and would have reset quiz progress.
+
+### New feature: Quiz tab
+
+| Tab | File | What it does |
+|-----|------|--------------|
+| Quiz | `lib/quiz_tab.dart` | A 5-question multiple-choice "Zombie Survival" quiz with swiping, Previous/Next navigation, live score tracking and a results popup. |
+
+**How it works:**
+- **Multiple choice:** each question has 4 options. Tap one to answer, and the answer locks. The correct option turns **green**, and a wrong pick turns **red**.
+- **Question navigation:** the **Previous** and **Next** buttons move between questions. They grey out on the first and last question.
+- **Swipe:** drag left or right to change questions (a `PageView`). Mouse dragging is enabled so swiping also works in Chrome.
+- **Score tracking:** the live score shows at the top ("Score: X"), next to "Question X of 5".
+- **Results:** **See Results** unlocks once all 5 questions are answered and shows the final score with a rating message. **Review Answers** closes the popup so you can look back through the questions, and **Try Again** resets the quiz.
+
+**Files added or changed:**
+```
+lib/
+├── main.dart          # Added the 4th "Quiz" tab and switched to IndexedStack
+├── question.dart      # NEW – Question model (text, options, correctIndex)
+└── quiz_tab.dart      # NEW – Quiz tab (questions list, PageView, scoring, results)
+```
+
+**To change the questions:** edit the `questions` list at the top of `lib/quiz_tab.dart`. `correctIndex` is the position of the right answer in `options`, starting at 0.
+
+### Tested with
+- Flutter 3.50.0 (stable) / Dart 3.14.0
+- Windows 11, Chrome (`flutter run -d chrome`)
+- `flutter test` passes
