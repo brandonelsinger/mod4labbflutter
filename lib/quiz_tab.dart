@@ -40,12 +40,88 @@ class QuizTab extends StatefulWidget {
 class _QuizTabState extends State<QuizTab> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
+  List<int?> _answers = List<int?>.filled(questions.length, null);
+
+  int get _score {
+    int score = 0;
+    for (int i = 0; i < questions.length; i++) {
+      if (_answers[i] == questions[i].correctIndex) {
+        score++;
+      }
+    }
+    return score;
+  }
+
+  bool get _allAnswered => !_answers.contains(null);
 
   void _goToPage(int page) {
     _pageController.animateToPage(
       page,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
+    );
+  }
+
+  void _selectAnswer(int questionIndex, int optionIndex) {
+    if (_answers[questionIndex] != null) {
+      return;
+    }
+    setState(() => _answers[questionIndex] = optionIndex);
+  }
+
+  Color? _optionColor(int questionIndex, int optionIndex) {
+    final selected = _answers[questionIndex];
+    if (selected == null) {
+      return null;
+    }
+    if (optionIndex == questions[questionIndex].correctIndex) {
+      return Colors.green.shade300;
+    }
+    if (optionIndex == selected) {
+      return Colors.red.shade300;
+    }
+    return null;
+  }
+
+  String _resultMessage() {
+    if (_score >= 4) {
+      return 'Zombie Overlord! The zombies are afraid of YOU.';
+    } else if (_score >= 3) {
+      return 'Group Leader! People follow you, mostly because you have snacks.';
+    } else if (_score >= 2) {
+      return "Barely Surviving. You'll make it...maybe.";
+    } else {
+      return "First to Go. You'd be the zombie who bites everyone else.";
+    }
+  }
+
+  void _restart() {
+    setState(() {
+      _answers = List<int?>.filled(questions.length, null);
+    });
+    _pageController.jumpToPage(0);
+  }
+
+  void _showResults() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('You scored $_score out of ${questions.length}'),
+        content: Text(_resultMessage()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Review Answers'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              _restart();
+            },
+            child: const Text('Try Again'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -61,9 +137,18 @@ class _QuizTabState extends State<QuizTab> {
       children: [
         Padding(
           padding: const EdgeInsets.all(16),
-          child: Text(
-            'Question ${_currentPage + 1} of ${questions.length}',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Question ${_currentPage + 1} of ${questions.length}',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                'Score: $_score',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ],
           ),
         ),
         Expanded(
@@ -77,7 +162,7 @@ class _QuizTabState extends State<QuizTab> {
               onPageChanged: (index) {
                 setState(() => _currentPage = index);
               },
-              itemBuilder: (context, index) => _buildQuestionCard(questions[index]),
+              itemBuilder: (context, index) => _buildQuestionCard(index),
             ),
           ),
         ),
@@ -89,6 +174,10 @@ class _QuizTabState extends State<QuizTab> {
               ElevatedButton(
                 onPressed: _currentPage > 0 ? () => _goToPage(_currentPage - 1) : null,
                 child: const Text('Previous'),
+              ),
+              ElevatedButton(
+                onPressed: _allAnswered ? _showResults : null,
+                child: const Text('See Results'),
               ),
               ElevatedButton(
                 onPressed: _currentPage < questions.length - 1
@@ -103,7 +192,9 @@ class _QuizTabState extends State<QuizTab> {
     );
   }
 
-  Widget _buildQuestionCard(Question question) {
+  Widget _buildQuestionCard(int questionIndex) {
+    final question = questions[questionIndex];
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Card(
@@ -118,12 +209,15 @@ class _QuizTabState extends State<QuizTab> {
                 style: const TextStyle(fontSize: 22),
               ),
               const SizedBox(height: 24),
-              for (final option in question.options)
+              for (int i = 0; i < question.options.length; i++)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: OutlinedButton(
-                    onPressed: () {},
-                    child: Text(option),
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: _optionColor(questionIndex, i),
+                    ),
+                    onPressed: () => _selectAnswer(questionIndex, i),
+                    child: Text(question.options[i]),
                   ),
                 ),
             ],
